@@ -15,24 +15,42 @@ const prompts = {
 // ----------------------------
 // GOOGLE TRANSLATE TTS FUNCTION
 // ----------------------------
-function speak(text, langCode) {
-  const audio = new Audio(
-    `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=${langCode}&client=tw-ob`
-  );
-  audio.play();
+function speak(text, lang) {
+  const utter = new SpeechSynthesisUtterance(text);
+
+  const voiceMap = {
+    hi: "hi",
+    bn: "bn",
+    ta: "ta",
+    gu: "gu",
+    kn: "kn",
+    or: "or",
+    ur: "ur",
+    raj: "hi"
+  };
+
+  const targetLang = voiceMap[lang] || "hi";
+
+  const voices = speechSynthesis.getVoices();
+
+  let selected = voices.find(v => v.lang.toLowerCase().includes(targetLang));
+
+  if (!selected) {
+    selected = voices.find(v => v.lang.toLowerCase().startsWith("en")) || voices[0];
+  }
+
+  utter.voice = selected;
+  utter.lang = selected.lang;
+  utter.pitch = 1;
+  utter.rate = 1;
+  utter.volume = 1;
+
+  speechSynthesis.cancel();
+  speechSynthesis.speak(utter);
 }
 
-// Language → TTS language codes
-const ttsLang = {
-  hi: "hi-IN",
-  kn: "kn-IN",
-  ta: "ta-IN",
-  ur: "ur",
-  gu: "gu",
-  bn: "bn",
-  or: "or",
-  raj: "hi-IN"
-};
+speechSynthesis.onvoiceschanged = () => {};
+
 
 // ----------------------------
 // MAIN LOGIC
@@ -112,3 +130,4 @@ window.startRecognition = function () {
   speak(prompts[currentLang][step], ttsLang[currentLang]);
   setTimeout(() => recognition.start(), 1500);
 };
+
