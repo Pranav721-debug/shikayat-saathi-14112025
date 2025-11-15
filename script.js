@@ -20,7 +20,7 @@ const prompts = {
   hi: ["कृपया अपनी समस्या बताएं", "कृपया अपने गांव और राज्य का नाम बताएं", "कृपया अपना नाम बताएं", "धन्यवाद, आपकी समस्या रिकॉर्ड कर ली गई है", "आपका सहायक", "बोलें"],
   kn: ["ದಯವಿಟ್ಟು ನಿಮ್ಮ ಸಮಸ್ಯೆಯನ್ನು ಹೇಳಿ", "ದಯವಿಟ್ಟು ನಿಮ್ಮ ಹಳ್ಳಿ ಮತ್ತು ರಾಜ್ಯದ ಹೆಸರನ್ನು ಹೇಳಿ", "ದಯವಿಟ್ಟು ನಿಮ್ಮ ಹೆಸರನ್ನು ಹೇಳಿ", "ಧನ್ಯವಾದಗಳು, ನಿಮ್ಮ ಸಮಸ್ಯೆಯನ್ನು ದಾಖಲಿಸಲಾಗಿದೆ", "ನಿಮ್ಮ ಸಹಾಯಕ", "ಮಾತನಾಡಿ"],
   ta: ["தயவுசெய்து உங்கள் பிரச்சனையை கூறுங்கள்", "தயவுசெய்து உங்கள் கிராமம் மற்றும் மாநிலத்தின் பெயரை கூறுங்கள்", "தயவுசெய்து உங்கள் பெயரை கூறுங்கள்", "நன்றி, உங்கள் பிரச்சனை பதிவு செய்யப்பட்டுள்ளது", "உங்கள் உதவியாளர்", "பேசவும்"],
-  ur: ["براہ کرم اپنی مسئلہ بتائیں", "براہ کرم اپنے گاؤں اور ریاست کا نام بتائیں", "براہ کرم اپنا नाम بتائیں", "شکریہ، آپ کا مسئلہ ریکارڈ کر لیا گیا ہے", "آپ کا معاون", "بولیں"],
+  ur: ["براہ کرم اپنی مسئلہ بتائیں", "براہ کرم اپنے گاؤں اور ریاست کا نام بتائیں", "براہ کرم اپنا نام بتائیں", "شکریہ، آپ کا مسئلہ ریکارڈ کر لیا گیا ہے", "آپ کا معاون", "بولیں"],
   gu: ["કૃપા કરીને તમારી સમસ્યા કહો", "તમારા ગામ અને રાજ્યનું નામ કહો", "તમારું નામ કહો", "આભાર, તમારી સમસ્યા નોંધાઈ ગઈ છે", "તમારો સહાયક", "બોલો"],
   bn: ["আপনার সমস্যাটি বলুন", "আপনার গ্রাম এবং রাজ্যের নাম বলুন", "আপনার নাম বলুন", "ধন্যবাদ, আপনার সমস্যাটি রেকর্ড করা হয়েছে", "আপনার সহায়ক", "বলুন"],
   or: ["ଦୟାକରି ଆପଣଙ୍କର ସମସ୍ୟା କୁ କୁହନ୍ତୁ", "ଆପଣଙ୍କ ଗାଁ ଓ ରାଜ୍ୟର ନାମ କୁହନ୍ତୁ", "ଆପଣଙ୍କ ନାମ କୁହନ୍ତୁ", "ଧନ୍ୟବାଦ, ଆପଣଙ୍କ ସମସ୍ୟା ରେକର୍ଡ ହୋଇଛି", "ଆପଣଙ୍କ ସହାୟକ", "କୁହନ୍ତୁ"],
@@ -42,12 +42,12 @@ const recogLangMap = {
 let currentLang = "hi";
 let step = 0;
 
-// ---------------- Google Translate TTS ----------------
+// ---------------- FIXED: Working TTS for all languages ----------------
 function speak(text, lang, callback = null) {
-  const googleURL =
-    `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=${langMapTTS[lang]}&client=tw-ob`;
+  const url =
+    `https://lingva.ml/api/v1/${langMapTTS[lang]}/en/speak?text=${encodeURIComponent(text)}`;
 
-  const audio = new Audio(googleURL);
+  const audio = new Audio(url);
   audio.onended = () => callback && callback();
   audio.play().catch(err => console.error("Audio Play Error:", err));
 }
@@ -86,12 +86,8 @@ window.startRecognition = () => {
 
     if (step < 3) {
       document.getElementById("stepText").innerText = prompts[currentLang][step];
-
-      speak(prompts[currentLang][step], currentLang, () => {
-        recognition.start();
-      });
+      speak(prompts[currentLang][step], currentLang, () => recognition.start());
     } else {
-      // final
       document.getElementById("stepText").innerText = prompts[currentLang][3];
       speak(prompts[currentLang][3], currentLang);
 
@@ -112,10 +108,7 @@ window.startRecognition = () => {
     }
   };
 
-  // Speak first instruction then start mic
-  speak(prompts[currentLang][step], currentLang, () => {
-    recognition.start();
-  });
+  speak(prompts[currentLang][0], currentLang, () => recognition.start());
 };
 
 // ---------------- Firebase Complaint Submit ----------------
